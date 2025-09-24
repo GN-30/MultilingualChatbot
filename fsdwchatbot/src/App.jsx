@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Helper to render clickable links
+// Helper to render clickable links (No changes needed here)
 const MessageRenderer = ({ text }) => {
   const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
   const parts = [];
@@ -29,18 +29,18 @@ const MessageRenderer = ({ text }) => {
   return <p className="text-sm leading-6 whitespace-pre-wrap">{parts}</p>;
 };
 
-// Chat message component
+// Chat message component (No changes needed here)
 const ChatMessage = ({ message, sender, isLoading }) => {
   const isBot = sender === "bot";
 
   const BotAvatar = () => (
-    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center mr-3 shadow-lg">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 flex items-center justify-center mr-3 shadow-lg flex-shrink-0">
       🤖
     </div>
   );
 
   const UserAvatar = () => (
-    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center ml-3 shadow-lg">
+    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-green-400 to-teal-400 flex items-center justify-center ml-3 shadow-lg flex-shrink-0">
       🧑
     </div>
   );
@@ -77,12 +77,14 @@ const ChatMessage = ({ message, sender, isLoading }) => {
 // Main App
 const App = () => {
   const [messages, setMessages] = useState([
-    { text: "Hello! Click an icon or type a message.", sender: "bot" },
+    { text: "Hello! Click a topic or type a message.", sender: "bot" },
   ]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeIcon, setActiveIcon] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
+  // **MODIFICATION: State to control sidebar visibility on mobile**
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef(null);
 
   const icons = [
@@ -210,6 +212,8 @@ const App = () => {
         text: `Here are the resources for "${subtopic.name}":\n\n${resourceLinks}`,
       },
     ]);
+    // **MODIFICATION: Close sidebar after selection on mobile**
+    setIsSidebarOpen(false);
   };
 
   const handleSend = async () => {
@@ -256,82 +260,123 @@ const App = () => {
     <div
       className={`${
         darkMode ? "dark" : ""
-      } flex h-screen font-sans bg-gray-100 dark:bg-gray-900 transition-colors`}
+      } h-screen font-sans bg-gray-100 dark:bg-gray-900 transition-colors overflow-hidden`} // **MODIFICATION: added overflow-hidden**
     >
-      {/* Sidebar */}
-      <aside className="w-64 bg-white dark:bg-gray-800 p-4 flex flex-col border-r border-gray-200 dark:border-gray-700">
-        <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
-          AI Assistant
-        </h1>
-        {icons.map((icon, index) => (
-          <div key={icon.name}>
-            <button
-              className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95`}
-              style={{
-                background: `linear-gradient(90deg, ${icon.color.replace(
-                  /\s/g,
-                  ","
-                )})`,
-              }}
-              onClick={() => handleIconClick(index)}
-            >
-              {icon.name}
-              <span>{activeIcon === index ? "▲" : "▼"}</span>
-            </button>
-            {activeIcon === index && (
-              <div className="ml-4 flex flex-col space-y-1 mb-2">
-                {icon.subtopics.map((sub) => (
-                  <button
-                    key={sub.name}
-                    className="text-gray-800 dark:text-gray-200 text-left px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                    onClick={() => handleSubtopicClick(sub)}
-                  >
-                    {sub.name}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+      <div className="relative h-full flex">
+        {/* **MODIFICATION: Overlay for mobile when sidebar is open** */}
+        {isSidebarOpen && (
+          <div
+            className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
+            onClick={() => setIsSidebarOpen(false)}
+          ></div>
+        )}
 
-        <button
-          onClick={() => setDarkMode(!darkMode)}
-          className="mt-auto px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
+        {/* **MODIFICATION: Added responsive classes to the sidebar** */}
+        <aside
+          className={`w-64 bg-white dark:bg-gray-800 p-4 flex flex-col border-r border-gray-200 dark:border-gray-700
+                     fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                     ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
         >
-          {darkMode ? "Switch to Light Mode 🌞" : "Switch to Dark Mode 🌙"}
-        </button>
-      </aside>
-
-      {/* Chat Area */}
-      <main className="flex-1 flex flex-col">
-        <div className="flex-1 overflow-y-auto p-6 space-y-4">
-          {messages.map((msg, idx) => (
-            <ChatMessage key={idx} message={msg.text} sender={msg.sender} />
+          <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+            AI Assistant
+          </h1>
+          {icons.map((icon, index) => (
+            <div key={icon.name}>
+              <button
+                className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95`}
+                style={{
+                  background: `linear-gradient(90deg, ${icon.color.replace(
+                    /\s/g,
+                    ","
+                  )})`,
+                }}
+                onClick={() => handleIconClick(index)}
+              >
+                {icon.name}
+                <span>{activeIcon === index ? "▲" : "▼"}</span>
+              </button>
+              {activeIcon === index && (
+                <div className="ml-4 flex flex-col space-y-1 mb-2">
+                  {icon.subtopics.map((sub) => (
+                    <button
+                      key={sub.name}
+                      className="text-gray-800 dark:text-gray-200 text-left px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
+                      onClick={() => handleSubtopicClick(sub)}
+                    >
+                      {sub.name}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
-          {isLoading && (
-            <ChatMessage message="..." sender="bot" isLoading={true} />
-          )}
-          <div ref={chatEndRef} />
-        </div>
-        <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type your message..."
-            className="flex-1 bg-gray-100 dark:bg-gray-700 border-none rounded-lg py-3 px-4 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
-            disabled={isLoading}
-          />
+
           <button
-            onClick={handleSend}
-            className="ml-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading}
+            onClick={() => setDarkMode(!darkMode)}
+            className="mt-auto px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
           >
-            Send
+            {darkMode ? "Switch to Light Mode 🌞" : "Switch to Dark Mode 🌙"}
           </button>
-        </div>
-      </main>
+        </aside>
+
+        {/* Chat Area */}
+        <main className="flex-1 flex flex-col h-full">
+          {/* **MODIFICATION: Mobile header with hamburger menu** */}
+          <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center">
+            <button
+              onClick={() => setIsSidebarOpen(true)}
+              className="text-gray-800 dark:text-gray-200"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-6 w-6"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 6h16M4 12h16m-7 6h7"
+                />
+              </svg>
+            </button>
+            <h1 className="text-xl font-bold ml-4 text-gray-800 dark:text-white">
+              Chat
+            </h1>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 space-y-4">
+            {messages.map((msg, idx) => (
+              <ChatMessage key={idx} message={msg.text} sender={msg.sender} />
+            ))}
+            {isLoading && (
+              <ChatMessage message="..." sender="bot" isLoading={true} />
+            )}
+            <div ref={chatEndRef} />
+          </div>
+
+          <div className="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 flex">
+            <input
+              type="text"
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your message..."
+              className="flex-1 bg-gray-100 dark:bg-gray-700 border-none rounded-lg py-3 px-4 text-gray-800 dark:text-gray-200 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-pink-500 transition"
+              disabled={isLoading}
+            />
+            <button
+              onClick={handleSend}
+              className="ml-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading}
+            >
+              Send
+            </button>
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
