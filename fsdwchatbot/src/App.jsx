@@ -229,6 +229,7 @@ const App = () => {
       const response = await fetch("https://fswd-luow.onrender.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: currentInput }),
       });
       if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);

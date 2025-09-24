@@ -7,7 +7,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 const app = express();
-// MODIFICATION: Use the PORT from environment variables for Render, with a fallback for local dev
+// Use the PORT from environment variables for Render, with a fallback for local dev
 const port = process.env.PORT || 3001;
 
 // Middleware
@@ -17,7 +17,7 @@ app.use(express.json()); // Enable parsing of JSON bodies
 // Initialize the Google Gemini AI client with your API key
 const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
 
-// MODIFICATION: A helper function to create a delay
+// A helper function to create a delay
 const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 
@@ -25,12 +25,12 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 app.post('/api/chat', async (req, res) => {
   const { message, unit, topic } = req.body;
 
-  // MODIFICATION: Define retry parameters
-  const maxRetries = 3;
+  // MODIFICATION: Reduced retry parameters for a faster response
+  const maxRetries = 2; // Reduced from 3 to 2
   let currentRetry = 0;
-  let waitTime = 1000; // Start with a 1-second wait
+  let waitTime = 500; // Reduced from 1000ms to 500ms
 
-  // MODIFICATION: Start a loop for retrying the API call
+  // Start a loop for retrying the API call
   while (currentRetry < maxRetries) {
     try {
       // Get the gemini-pro model
@@ -38,14 +38,12 @@ app.post('/api/chat', async (req, res) => {
 
       // Construct a detailed prompt for the AI
       const prompt = `
-        You are an AI assistant for a student.
+        You are an AI assistant for a student. Keep your answers concise and to the point.
         The student is currently studying:
         Unit: ${unit || 'Not specified'}
         Topic: ${topic || 'Not specified'}
 
         The student's message is: "${message}"
-
-        Provide a helpful and relevant response based on this context.
       `;
 
       // Generate content based on the prompt
@@ -57,9 +55,7 @@ app.post('/api/chat', async (req, res) => {
       return res.json({ reply: text });
 
     } catch (error) {
-      // MODIFICATION: Check if the error is the specific '503 overloaded' error
-      // The error object from the SDK might not have a .status property directly,
-      // so checking the message is a reliable way to catch it.
+      // Check if the error is the specific '503 overloaded' error
       if (error.message && error.message.includes('503')) {
         currentRetry++; // Increment the retry counter
         console.log(`Model overloaded. Retrying in ${waitTime / 1000}s... (${currentRetry}/${maxRetries})`);
@@ -81,7 +77,7 @@ app.post('/api/chat', async (req, res) => {
     }
   }
 
-  // MODIFICATION: This part is only reached if the loop finishes without a success
+  // This part is only reached if the loop finishes without a success
   console.error('Error with Gemini API: Model still overloaded after all retries.');
   res.status(503).json({ error: 'Failed to get response from AI. The service is temporarily unavailable. Please try again in a moment.' });
 });
@@ -90,3 +86,4 @@ app.post('/api/chat', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on port: ${port}`);
 });
+
