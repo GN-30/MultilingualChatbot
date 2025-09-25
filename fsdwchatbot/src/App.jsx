@@ -82,7 +82,12 @@ const App = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeIcon, setActiveIcon] = useState(null);
-  const [darkMode, setDarkMode] = useState(true);
+  // This state now sets the theme based on system preference and does not change.
+  const [darkMode] = useState(
+    () =>
+      window.matchMedia &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+  );
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -220,7 +225,6 @@ const App = () => {
     const currentInput = input;
     const userMessage = { text: currentInput, sender: "user" };
 
-    // Create the updated messages array *before* the API call
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
@@ -230,13 +234,10 @@ const App = () => {
       const response = await fetch("https://fswd-luow.onrender.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        // --- THIS IS THE CRUCIAL CHANGE ---
-        // Send the entire message history along with the new message
         body: JSON.stringify({
           message: currentInput,
           history: updatedMessages,
         }),
-        // --- END OF CHANGE ---
       });
 
       if (!response.ok) {
@@ -246,7 +247,6 @@ const App = () => {
       const data = await response.json();
       const botMessage = { text: data.reply, sender: "bot" };
 
-      // Update state with the bot's response
       setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (error) {
       console.error("API error:", error);
@@ -254,7 +254,6 @@ const App = () => {
         text: "Sorry, I couldn't connect to the server.",
         sender: "bot",
       };
-      // Update state with the error message
       setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
@@ -288,8 +287,10 @@ const App = () => {
 
         <aside
           className={`w-64 bg-white dark:bg-gray-800 p-4 flex flex-col border-r border-gray-200 dark:border-gray-700
-                     fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-                     ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"}`}
+                       fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                       ${
+                         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
+                       }`}
         >
           <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
             AI Assistant
@@ -319,12 +320,7 @@ const App = () => {
             </div>
           ))}
 
-          <button
-            onClick={() => setDarkMode(!darkMode)}
-            className="mt-auto px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-          >
-            {darkMode ? "Switch to Light Mode 🌞" : "Switch to Dark Mode 🌙"}
-          </button>
+          {/* THEME TOGGLE BUTTON HAS BEEN REMOVED FROM HERE */}
         </aside>
 
         <main className="flex-1 flex flex-col h-full">
