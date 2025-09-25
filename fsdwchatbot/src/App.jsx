@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 
-// Helper to render clickable links (No changes needed here)
+// Helper to render clickable links
 const MessageRenderer = ({ text }) => {
   const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
   const parts = [];
@@ -29,7 +29,7 @@ const MessageRenderer = ({ text }) => {
   return <p className="text-sm leading-6 whitespace-pre-wrap">{parts}</p>;
 };
 
-// Chat message component (No changes needed here)
+// Chat message component
 const ChatMessage = ({ message, sender, isLoading }) => {
   const isBot = sender === "bot";
 
@@ -83,7 +83,6 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [activeIcon, setActiveIcon] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
-  // **MODIFICATION: State to control sidebar visibility on mobile**
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const chatEndRef = useRef(null);
 
@@ -212,16 +211,18 @@ const App = () => {
         text: `Here are the resources for "${subtopic.name}":\n\n${resourceLinks}`,
       },
     ]);
-    // **MODIFICATION: Close sidebar after selection on mobile**
     setIsSidebarOpen(false);
   };
 
   const handleSend = async () => {
     if (!input.trim()) return;
 
-    const userMessage = { text: input, sender: "user" };
-    setMessages((prev) => [...prev, userMessage]);
     const currentInput = input;
+    const userMessage = { text: currentInput, sender: "user" };
+
+    // Create the updated messages array *before* the API call
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInput("");
     setIsLoading(true);
 
@@ -229,27 +230,42 @@ const App = () => {
       const response = await fetch("https://fswd-luow.onrender.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: currentInput }),
+        // --- THIS IS THE CRUCIAL CHANGE ---
+        // Send the entire message history along with the new message
+        body: JSON.stringify({
+          message: currentInput,
+          history: updatedMessages,
+        }),
+        // --- END OF CHANGE ---
       });
-      if (!response.ok)
+
+      if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
       const data = await response.json();
       const botMessage = { text: data.reply, sender: "bot" };
-      setMessages((prev) => [...prev, botMessage]);
+
+      // Update state with the bot's response
+      setMessages((prevMessages) => [...prevMessages, botMessage]);
     } catch (error) {
       console.error("API error:", error);
       const errorMessage = {
         text: "Sorry, I couldn't connect to the server.",
         sender: "bot",
       };
-      setMessages((prev) => [...prev, errorMessage]);
+      // Update state with the error message
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
     } finally {
       setIsLoading(false);
     }
   };
 
   const handleKeyPress = (e) => {
-    if (e.key === "Enter") handleSend();
+    if (e.key === "Enter") {
+      e.preventDefault();
+      handleSend();
+    }
   };
 
   useEffect(() => {
@@ -260,10 +276,9 @@ const App = () => {
     <div
       className={`${
         darkMode ? "dark" : ""
-      } h-screen font-sans bg-gray-100 dark:bg-gray-900 transition-colors overflow-hidden`} // **MODIFICATION: added overflow-hidden**
+      } h-screen font-sans bg-gray-100 dark:bg-gray-900 transition-colors overflow-hidden`}
     >
       <div className="relative h-full flex">
-        {/* **MODIFICATION: Overlay for mobile when sidebar is open** */}
         {isSidebarOpen && (
           <div
             className="fixed inset-0 bg-black bg-opacity-50 z-20 md:hidden"
@@ -271,7 +286,6 @@ const App = () => {
           ></div>
         )}
 
-        {/* **MODIFICATION: Added responsive classes to the sidebar** */}
         <aside
           className={`w-64 bg-white dark:bg-gray-800 p-4 flex flex-col border-r border-gray-200 dark:border-gray-700
                      fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
@@ -283,13 +297,7 @@ const App = () => {
           {icons.map((icon, index) => (
             <div key={icon.name}>
               <button
-                className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95`}
-                style={{
-                  background: `linear-gradient(90deg, ${icon.color.replace(
-                    /\s/g,
-                    ","
-                  )})`,
-                }}
+                className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95 bg-gradient-to-r ${icon.color}`}
                 onClick={() => handleIconClick(index)}
               >
                 {icon.name}
@@ -319,9 +327,7 @@ const App = () => {
           </button>
         </aside>
 
-        {/* Chat Area */}
         <main className="flex-1 flex flex-col h-full">
-          {/* **MODIFICATION: Mobile header with hamburger menu** */}
           <div className="md:hidden p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 flex items-center">
             <button
               onClick={() => setIsSidebarOpen(true)}

@@ -24,62 +24,74 @@ const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 // --- API Endpoint: /api/chat ---
 app.post('/api/chat', async (req, res) => {
-  const { message, unit, topic } of req.body;
+  // --- THIS IS THE CORRECTED LINE ---
+  // We are now correctly using '=' for object destructuring
+  const { message, history, unit, topic } = req.body;
+  // --- END OF CORRECTION ---
 
   // --- Retry Logic Configuration ---
-  // We will try up to 2 times with a short wait to balance speed and reliability.
-  const maxRetries = 2; // Try the initial call, plus one retry
+  const maxRetries = 2;
   let currentRetry = 0;
-  let waitTime = 500; // Start with a quick 0.5-second wait
+  let waitTime = 500;
 
   // --- Loop for API Call with Retries ---
   while (currentRetry < maxRetries) {
     try {
-      // Get the generative model
       const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash' });
 
-      // Construct the prompt with clear instructions for the AI
+      let historyString = '';
+      if (history && history.length > 1) {
+        historyString = history.map(entry => {
+          const prefix = entry.sender === 'user' ? 'Student:' : 'AI:';
+          return `${prefix} ${entry.text}`;
+        }).join('\n');
+      }
+
       const prompt = `
-        You are an AI assistant for a student. Keep your answers concise and to the point.
+        You are an AI assistant for a student. Your primary goal is to answer the student's question directly.
+        Do not ask clarifying questions unless the user's request is completely ambiguous.
+        Keep your answers concise and to the point.
+
         The student is currently studying:
         Unit: ${unit || 'Not specified'}
         Topic: ${topic || 'Not specified'}
 
-        The student's message is: "${message}"
+        ---
+        CONVERSATION HISTORY:
+        ${historyString}
+        ---
+
+        The student's new message is: "${message}"
+
+        Provide a direct and helpful answer based on the full conversation context.
       `;
 
-      // Generate content from the model
       const result = await model.generateContent(prompt);
       const response = await result.response;
       const text = response.text();
 
-      // If the API call is successful, send the response and exit the function
       return res.json({ reply: text });
 
     } catch (error) {
-      // Check if the error is a '503 Service Unavailable' (overloaded) error
       if (error.message && error.message.includes('503')) {
-        currentRetry++; // Increment the retry counter
+        currentRetry++;
         console.log(`Model overloaded. Retrying in ${waitTime / 1000}s... (${currentRetry}/${maxRetries})`);
 
-        // If we've reached the maximum number of retries, exit the loop
         if (currentRetry >= maxRetries) {
           console.error('Max retries reached. Failing the request.');
           break;
         }
 
-        await delay(waitTime); // Wait before the next attempt
-        waitTime *= 2; // Double the wait time for the subsequent retry
+        await delay(waitTime);
+        waitTime *= 2;
 
       } else {
-        // If it's a different kind of error (e.g., API key issue), fail immediately
         console.error('An unrecoverable error occurred with the Gemini API:', error);
         return res.status(500).json({ error: 'Failed to get response from AI due to a non-retryable error.' });
       }
     }
   }
 
-  // This response is sent only if the loop finishes after all retries have failed
   console.error('Error: Model still overloaded after all retries.');
   return res.status(503).json({ error: 'The AI service is temporarily unavailable. Please try again in a moment.' });
 });
