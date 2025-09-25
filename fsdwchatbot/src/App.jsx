@@ -82,7 +82,6 @@ const App = () => {
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [activeIcon, setActiveIcon] = useState(null);
-  // This state now sets the theme based on system preference and does not change.
   const [darkMode] = useState(
     () =>
       window.matchMedia &&
@@ -93,38 +92,177 @@ const App = () => {
 
   const icons = [
     {
-      name: "HTML",
+      name: "UNIT-1",
       color: "from-purple-400 via-pink-400 to-red-400",
       subtopics: [
         {
-          name: "HTML Basics",
+          name: "Internal/External Links, Colors, Images & Multimedia",
           resources: [
-            { name: "Guide", url: "https://www.w3schools.com/html/" },
+            {
+              name: "Links Guide",
+              url: "https://www.w3schools.com/html/html_links.asp",
+            },
+            {
+              name: "Media Guide",
+              url: "https://www.w3schools.com/html/html_media.asp",
+            },
           ],
         },
         {
-          name: "HTML Forms",
+          name: "CSS Overview: Cascading Style Sheets",
           resources: [
             {
-              name: "Forms Guide",
-              url: "https://www.w3schools.com/html/html_forms.asp",
+              name: "CSS Intro",
+              url: "https://www.w3schools.com/css/css_intro.asp",
+            },
+          ],
+        },
+        {
+          name: "Margin, Padding, Alignment & Floating",
+          resources: [
+            {
+              name: "Box Model",
+              url: "https://www.w3schools.com/css/css_boxmodel.asp",
+            },
+            {
+              name: "Align & Float",
+              url: "https://www.w3schools.com/css/css_align.asp",
+            },
+          ],
+        },
+        {
+          name: "CSS Box Model, Positioning, Lists, & Navigation",
+          resources: [
+            {
+              name: "Positioning",
+              url: "https://www.w3schools.com/css/css_positioning.asp",
+            },
+            {
+              name: "Navigation Bars",
+              url: "https://www.w3schools.com/css/css_navbar.asp",
+            },
+          ],
+        },
+        {
+          name: "Modern CSS Layouts (Flexbox & Grid)",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+            {
+              name: "Grid Guide",
+              url: "https://css-tricks.com/getting-started-css-grid/",
+            },
+          ],
+        },
+        {
+          name: "Backgrounds and Borders",
+          resources: [
+            {
+              name: "Backgrounds",
+              url: "https://www.w3schools.com/css/css_background.asp",
+            },
+            {
+              name: "Borders",
+              url: "https://www.w3schools.com/css/css_border.asp",
+            },
+          ],
+        },
+        {
+          name: "CSS Transforms, Transitions, & Animations",
+          resources: [
+            {
+              name: "2D Transforms",
+              url: "https://www.w3schools.com/css/css3_2dtransforms.asp",
+            },
+            {
+              name: "Transitions",
+              url: "https://www.w3schools.com/css/css3_transitions.asp",
+            },
+            {
+              name: "Animations",
+              url: "https://www.w3schools.com/css/css3_animations.asp",
             },
           ],
         },
       ],
     },
     {
-      name: "CSS",
+      name: "UNIT-2",
       color: "from-blue-400 via-purple-400 to-pink-400",
       subtopics: [
         {
-          name: "CSS Basics",
+          name: "JavaScript overview and understanding javascript - Understanding dynamic websites and Html 5 applications ",
           resources: [
             { name: "CSS Guide", url: "https://www.w3schools.com/css/" },
           ],
         },
         {
-          name: "Flexbox",
+          name: "Getting started with javascript programs - working with the document object model(DOM)",
+          resources: [
+            {
+              name: "Getting started with javascript programs - working with the document object model(DOM) ",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: " understanding javascript variables, strings and arrays",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: "Control flow with conditions and loops - Responding to events and using windows",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: " Javascript best practices - using third party javascript libraries and frameworks ",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: "The foundations of react - JSX - all about components ",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: "Events - forms - refs - styling react - routing - hooks ",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: "Hooks : Rules of hooks , Built-in hooks ",
+          resources: [
+            {
+              name: "Flexbox Guide",
+              url: "https://css-tricks.com/snippets/css/a-guide-to-flexbox/",
+            },
+          ],
+        },
+        {
+          name: "Writing custom hooks - Labeling custom hooks with usedebug value - Finding and using Custom hooks",
           resources: [
             {
               name: "Flexbox Guide",
@@ -135,7 +273,7 @@ const App = () => {
       ],
     },
     {
-      name: "JS",
+      name: "UNIT-3",
       color: "from-green-400 to-teal-400",
       subtopics: [
         {
@@ -156,7 +294,7 @@ const App = () => {
       ],
     },
     {
-      name: "React",
+      name: "UNIT-4",
       color: "from-pink-400 to-red-400",
       subtopics: [
         {
@@ -180,7 +318,7 @@ const App = () => {
       ],
     },
     {
-      name: "Python",
+      name: "UNIT-5",
       color: "from-indigo-400 via-purple-400 to-pink-400",
       subtopics: [
         {
@@ -205,6 +343,7 @@ const App = () => {
   const handleIconClick = (index) =>
     setActiveIcon(activeIcon === index ? null : index);
 
+  // MODIFICATION: This function now displays the resource links in the chat.
   const handleSubtopicClick = (subtopic) => {
     const resourceLinks = subtopic.resources
       .map((res) => `• [${res.name}](${res.url})`)
@@ -213,18 +352,17 @@ const App = () => {
       ...prev,
       {
         sender: "bot",
-        text: `Here are the resources for "${subtopic.name}":\n\n${resourceLinks}`,
+        text: `Here are resources for "${subtopic.name}":\n\n${resourceLinks}`,
       },
     ]);
-    setIsSidebarOpen(false);
+    setIsSidebarOpen(false); // Close sidebar on mobile
   };
 
   const handleSend = async () => {
-    if (!input.trim()) return;
+    const textToSend = input.trim();
+    if (!textToSend) return;
 
-    const currentInput = input;
-    const userMessage = { text: currentInput, sender: "user" };
-
+    const userMessage = { text: textToSend, sender: "user" };
     const updatedMessages = [...messages, userMessage];
     setMessages(updatedMessages);
     setInput("");
@@ -235,7 +373,7 @@ const App = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: currentInput,
+          message: textToSend,
           history: updatedMessages,
         }),
       });
@@ -292,35 +430,36 @@ const App = () => {
                          isSidebarOpen ? "translate-x-0" : "-translate-x-full"
                        }`}
         >
-          <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white">
+          <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white flex-shrink-0">
             AI Assistant
           </h1>
-          {icons.map((icon, index) => (
-            <div key={icon.name}>
-              <button
-                className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95 bg-gradient-to-r ${icon.color}`}
-                onClick={() => handleIconClick(index)}
-              >
-                {icon.name}
-                <span>{activeIcon === index ? "▲" : "▼"}</span>
-              </button>
-              {activeIcon === index && (
-                <div className="ml-4 flex flex-col space-y-1 mb-2">
-                  {icon.subtopics.map((sub) => (
-                    <button
-                      key={sub.name}
-                      className="text-gray-800 dark:text-gray-200 text-left px-2 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition"
-                      onClick={() => handleSubtopicClick(sub)}
-                    >
-                      {sub.name}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-          ))}
 
-          {/* THEME TOGGLE BUTTON HAS BEEN REMOVED FROM HERE */}
+          <div className="flex-grow overflow-y-auto pr-2">
+            {icons.map((icon, index) => (
+              <div key={icon.name}>
+                <button
+                  className={`w-full flex items-center justify-between p-3 mb-2 rounded-lg text-white shadow-md transition transform hover:scale-105 active:scale-95 bg-gradient-to-r ${icon.color}`}
+                  onClick={() => handleIconClick(index)}
+                >
+                  {icon.name}
+                  <span>{activeIcon === index ? "▲" : "▼"}</span>
+                </button>
+                {activeIcon === index && (
+                  <div className="ml-4 flex flex-col space-y-1 mb-2">
+                    {icon.subtopics.map((sub) => (
+                      <button
+                        key={sub.name}
+                        className="w-full text-left p-2 my-1 rounded-md bg-gray-100 dark:bg-gray-700/50 hover:bg-gray-200 dark:hover:bg-gray-600/50 transition-colors duration-200 text-gray-700 dark:text-gray-200 text-sm font-medium"
+                        onClick={() => handleSubtopicClick(sub)}
+                      >
+                        {sub.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </aside>
 
         <main className="flex-1 flex flex-col h-full">
@@ -370,7 +509,7 @@ const App = () => {
               disabled={isLoading}
             />
             <button
-              onClick={handleSend}
+              onClick={() => handleSend()}
               className="ml-2 px-4 py-2 bg-pink-500 text-white rounded-lg hover:bg-pink-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               disabled={isLoading}
             >
