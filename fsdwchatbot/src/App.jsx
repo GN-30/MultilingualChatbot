@@ -195,7 +195,10 @@ const App = () => {
         {
           name: "JavaScript overview and understanding javascript - Understanding dynamic websites and Html 5 applications ",
           resources: [
-            { name: "CSS Guide", url: "https://www.w3schools.com/css/" },
+            {
+              name: "CSS Guide",
+              url: "https://docs.google.com/forms/d/e/1FAIpQLSf73j9COxsDMIe7TvThR1JY2UE2nLhKWmZKQX0dKfEWA1gTFQ/viewform?usp=header",
+            },
           ],
         },
         {
