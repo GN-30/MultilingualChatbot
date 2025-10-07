@@ -377,7 +377,7 @@ const App = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://fswd-luow.onrender.com", {
+      const response = await fetch("https://fswd-luow.onrender.com/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
