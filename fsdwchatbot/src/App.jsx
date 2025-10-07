@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 
 // Helper to render clickable links
-const MessageRenderer = ({ text }) => {
+// ✅ FIX: Added a default empty string to the 'text' prop to prevent crashes.
+const MessageRenderer = ({ text = "" }) => {
   const linkRegex = /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g;
   const parts = [];
   let lastIndex = 0;
@@ -265,7 +266,7 @@ const App = () => {
           ],
         },
         {
-          name: "Writing custom hooks - Labeling custom hooks with usedebug value - Finding and using Custom hooks",
+          name: "Writing custom hooks - Labeling custom hooks with usedebug value - Finding and using Custom hooks",
           resources: [
             {
               name: "Flexbox Guide",
@@ -343,11 +344,16 @@ const App = () => {
     },
   ];
 
-  const handleIconClick = (index) =>
-    setActiveIcon(activeIcon === index ? null : index);
+  const [selectedUnit, setSelectedUnit] = useState(null);
+  const [selectedTopic, setSelectedTopic] = useState(null);
 
-  // MODIFICATION: This function now displays the resource links in the chat.
+  const handleIconClick = (index) => {
+    setActiveIcon(activeIcon === index ? null : index);
+    setSelectedUnit(icons[index].name); // set unit when icon clicked
+  };
+
   const handleSubtopicClick = (subtopic) => {
+    setSelectedTopic(subtopic.name); // set topic when subtopic clicked
     const resourceLinks = subtopic.resources
       .map((res) => `• [${res.name}](${res.url})`)
       .join("\n");
@@ -358,44 +364,49 @@ const App = () => {
         text: `Here are resources for "${subtopic.name}":\n\n${resourceLinks}`,
       },
     ]);
-    setIsSidebarOpen(false); // Close sidebar on mobile
+    setIsSidebarOpen(false);
   };
 
   const handleSend = async () => {
-    const textToSend = input.trim();
-    if (!textToSend) return;
+    const message = input.trim(); // <-- define message here
+    if (!message) return;
 
-    const userMessage = { text: textToSend, sender: "user" };
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
+    const userMessage = { text: message, sender: "user" };
+    setMessages((prev) => [...prev, userMessage]);
     setInput("");
     setIsLoading(true);
 
     try {
-      const response = await fetch("https://fswd-luow.onrender.com/api/chat", {
+      const response = await fetch("http://localhost:3001/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          message: textToSend,
-          history: updatedMessages,
+          message, // <-- send message
+          history: messages, // or just messages
+          unit: selectedUnit,
+          topic: selectedTopic,
         }),
       });
 
-      if (!response.ok) {
+      if (!response.ok)
         throw new Error(`HTTP error! status: ${response.status}`);
-      }
 
+      // AFTER - This correctly reads the new Gemini API structure
       const data = await response.json();
-      const botMessage = { text: data.reply, sender: "bot" };
 
-      setMessages((prevMessages) => [...prevMessages, botMessage]);
+      // Safely access the text from the new response structure
+      const geminiText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
+        "Sorry, I couldn't get a valid response.";
+      const botMessage = { text: geminiText, sender: "bot" };
+
+      setMessages((prev) => [...prev, botMessage]);
     } catch (error) {
       console.error("API error:", error);
-      const errorMessage = {
-        text: "Sorry, I couldn't connect to the server.",
-        sender: "bot",
-      };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      setMessages((prev) => [
+        ...prev,
+        { text: "Sorry, I couldn't connect to the server.", sender: "bot" },
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -428,10 +439,12 @@ const App = () => {
 
         <aside
           className={`w-64 bg-white dark:bg-gray-800 p-4 flex flex-col border-r border-gray-200 dark:border-gray-700
-                       fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
-                       ${
-                         isSidebarOpen ? "translate-x-0" : "-translate-x-full"
-                       }`}
+                                  fixed inset-y-0 left-0 z-30 transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0
+                                  ${
+                                    isSidebarOpen
+                                      ? "translate-x-0"
+                                      : "-translate-x-full"
+                                  }`}
         >
           <h1 className="text-xl font-bold mb-6 text-gray-800 dark:text-white flex-shrink-0">
             AI Assistant

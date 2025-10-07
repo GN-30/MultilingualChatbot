@@ -1,103 +1,86 @@
-import express from 'express';
-import cors from 'cors';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
+// server.js
 
-// Load environment variables from .env file for local development
-dotenv.config();
+// New ES Module syntax
+import express from "express";
+import cors from "cors";
+import dotenv from "dotenv";
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+dotenv.config(); // Call config after importing
 
 const app = express();
-// Use the PORT provided by the hosting environment (like Render), or 3001 for local use
-const port = process.env.PORT || 3001;
+// Use the PORT environment variable provided by Render, or 3001 for local development
+const PORT = process.env.PORT || 3001;
 
-// --- Middleware ---
-app.use(cors()); // Enable Cross-Origin Resource Sharing
-app.use(express.json()); // Enable parsing of JSON request bodies
+// --- CORS Configuration for Production ---
+// This list specifies which frontend URLs are allowed to make requests to this server.
+const allowedOrigins = [
+  'http://localhost:5173', // Your local Vite dev environment
+   // Your local create-react-app dev environment
+   // **IMPORTANT**: Replace this with your actual Vercel URL after deploying the frontend
+];
 
-// --- Initialize Gemini AI Client ---
-// Ensure you have your GOOGLE_API_KEY set in your .env file or Render environment variables
-const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
-
-// A helper function to create a delay for retries
-const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
-
-// --- API Endpoint: /api/chat ---
-app.post('/api/chat', async (req, res) => {
-  // --- THIS IS THE CORRECTED LINE ---
-  // We are now correctly using '=' for object destructuring
-  const { message, history, unit, topic } = req.body;
-  // --- END OF CORRECTION ---
-
-  // --- Retry Logic Configuration ---
-  const maxRetries = 2;
-  let currentRetry = 0;
-  let waitTime = 500;
-
-  // --- Loop for API Call with Retries ---
-  while (currentRetry < maxRetries) {
-    try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
-
-      let historyString = '';
-      if (history && history.length > 1) {
-        historyString = history.map(entry => {
-          const prefix = entry.sender === 'user' ? 'Student:' : 'AI:';
-          return `${prefix} ${entry.text}`;
-        }).join('\n');
-      }
-
-      const prompt = `
-        You are an AI assistant for a student. Your primary goal is to answer the student's question directly.
-        Do not ask clarifying questions unless the user's request is completely ambiguous.
-        Keep your answers concise and to the point.
-
-        The student is currently studying:
-        Unit: ${unit || 'Not specified'}
-        Topic: ${topic || 'Not specified'}
-
-        ---
-        CONVERSATION HISTORY:
-        ${historyString}
-        ---
-
-        The student's new message is: "${message}"
-
-        Provide a direct and helpful answer based on the full conversation context.
-      `;
-
-      const result = await model.generateContent(prompt);
-      const response = await result.response;
-      const text = response.text();
-
-      return res.json({ reply: text });
-
-    } catch (error) {
-      if (error.message && error.message.includes('503')) {
-        currentRetry++;
-        console.log(`Model overloaded. Retrying in ${waitTime / 1000}s... (${currentRetry}/${maxRetries})`);
-
-        if (currentRetry >= maxRetries) {
-          console.error('Max retries reached. Failing the request.');
-          break;
-        }
-
-        await delay(waitTime);
-        waitTime *= 2;
-
-      } else {
-        console.error('An unrecoverable error occurred with the Gemini API:', error);
-        return res.status(500).json({ error: 'Failed to get response from AI due to a non-retryable error.' });
-      }
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
     }
+  },
+};
+
+app.use(cors(corsOptions));
+app.use(express.json()); // Middleware to parse JSON bodies
+
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+// --- Temporary Test Route ---
+// Useful for checking if the server is running and reachable.
+app.get('/', (req, res) => {
+  res.send('<h1>Backend server is running and reachable!</h1>');
+});
+
+// --- Main Chat API Endpoint ---
+app.post('/api/chat', async (req, res) => {
+  const { message } = req.body;
+
+  if (!GEMINI_API_KEY) {
+    console.error("GEMINI_API_KEY is not defined. Check your .env file or Render environment variables.");
+    return res.status(500).json({ error: 'API key not configured on the server.' });
   }
 
-  console.error('Error: Model still overloaded after all retries.');
-  return res.status(503).json({ error: 'The AI service is temporarily unavailable. Please try again in a moment.' });
+  if (!message) {
+    return res.status(400).json({ error: 'Message is required in the request body.' });
+  }
+
+  const prompt = `You are an expert full stack web development assistant. Your purpose is to provide clear, accurate, and helpful information on topics like HTML, CSS, JavaScript, React, Node.js, Express, databases, and other web technologies. If a user asks a question unrelated to web development, politely state that your expertise is focused on that area. User query: "${message}"`;
+  const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${GEMINI_API_KEY}`;
+  const payload = { contents: [{ parts: [{ text: prompt }] }] };
+
+  try {
+    const apiResponse = await fetch(apiUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!apiResponse.ok) {
+      const errorBody = await apiResponse.text();
+      console.error("API Error Response:", errorBody);
+      throw new Error(`API request failed with status ${apiResponse.status}`);
+    }
+
+    const data = await apiResponse.json();
+    res.json(data);
+  } catch (error) {
+    console.error('Error calling Gemini API:', error);
+    res.status(500).json({ error: 'Failed to fetch from Gemini API.' });
+  }
 });
 
 // --- Start the Server ---
-app.listen(port, () => {
-  console.log(`Server is running on port: ${port}`);
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
-
