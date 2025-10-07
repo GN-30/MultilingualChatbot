@@ -37,7 +37,7 @@ app.post('/api/chat', async (req, res) => {
   // --- Loop for API Call with Retries ---
   while (currentRetry < maxRetries) {
     try {
-      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-flash-latest' });
+      const model = genAI.getGenerativeModel({ model: 'gemini-1.5-pro' });
 
       let historyString = '';
       if (history && history.length > 1) {
