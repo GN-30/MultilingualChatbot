@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3001;
 // This list specifies which frontend URLs are allowed to make requests to this server.
 const allowedOrigins = [
   'http://localhost:5173', 
-  'https://fswd-luow.onrender.com'// Your local Vite dev environment
+  'https://multilingual-chatbot-woad.vercel.app'// Your local Vite dev environment
    // Your local create-react-app dev environment
    // **IMPORTANT**: Replace this with your actual Vercel URL after deploying the frontend
 ];
